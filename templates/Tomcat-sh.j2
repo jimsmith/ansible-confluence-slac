@@ -1,0 +1,100 @@
+#!/usr/bin/pagsh
+##############################################################################
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+##############################################################################
+#
+# Small shell script to show how to start/stop Tomcat using jsvc
+# If you want to have Tomcat running on port 80 please modify the server.xml
+# file:
+#
+#    <!-- Define a non-SSL HTTP/1.1 Connector on port 80 -->
+#    <Connector className="org.apache.catalina.connector.http.HttpConnector"
+#               port="80" minProcessors="5" maxProcessors="75"
+#               enableLookups="true" redirectPort="8443"
+#               acceptCount="10" debug="0" connectionTimeout="60000"/>
+#
+# This is for of Tomcat-4.1.x (Apache Tomcat/4.1)
+#
+# Adapt the following lines to your configuration
+export JAVA_HOME={{java_home | default("/usr/lib/jvm/default-java")}}
+export PATH=$JAVA_HOME/bin:/bin:/usr/bin:/sbin:/usr/sbin
+export CATALINA_HOME={{basedir}}/confluence/
+export DAEMON_HOME={{basedir}}/confluence/bin/
+export JSVC_BIN=/usr/bin/jsvc
+TOMCAT_USER={{confluence_user | default("cj-admin")}}
+TMP_DIR=$CATALINA_HOME/temp
+
+CATALINA_OPTS="-Dorg.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER=true
+              -Dmail.mime.decodeparameters=true
+              -Xms{{min_heap | default("1024m")}}
+              -Xmx{{max_heap | default("1024m")}}
+              {% if oracle_java_version|version_compare('1.8.0', '<') -%}
+              -XX:MaxPermSize={{max_perm | default("512m")}}
+              {% endif -%}
+              -Dcom.sun.management.jmxremote
+              -Dcom.sun.management.jmxremote.port={{jmx_port | default("1099")}}
+              -Dcom.sun.management.jmxremote.ssl=false
+              -Dcom.sun.management.jmxremote.authenticate=false
+              -Djava.awt.headless=true
+              -Datlassian.plugins.enable.wait=1200
+              -Datlassian.mail.senddisabled={{mail_disabled | default("true")}}
+              -Datlassian.mail.fetchdisabled={{mail_disabled | default ("true")}}
+              -Datlassian.mail.popdisabled={{mail_disabled| default("true")}}"
+
+CLASSPATH=\
+$JAVA_HOME/lib/tools.jar:\
+$DAEMON_HOME/commons-daemon.jar:\
+$DAEMON_HOME/tomcat-juli.jar:\
+$CATALINA_HOME/bin/bootstrap.jar
+
+case "$1" in
+  start)
+    #
+    # Start Tomcat
+    $JSVC_BIN \
+    -user $TOMCAT_USER \
+    -home $JAVA_HOME \
+    -Dcatalina.home=$CATALINA_HOME \
+    -Djava.io.tmpdir=$TMP_DIR \
+    -pidfile $CATALINA_HOME/temp/jsvc.pid \
+    -outfile {{ tomcat_log | default("$CATALINA_HOME/logs/catalina.out") }} \
+    -errfile {{ tomcat_err_log | default("$CATALINA_HOME/logs/catalina.err") }}\
+    $CATALINA_OPTS \
+    -cp $CLASSPATH \
+    {% if tomcat_verbose is defined and tomcat_verbose == True -%}
+    -verbose \
+    {% endif -%}
+    {% if tomcat_debug is defined and tomcat_debug == True -%}
+    -debug \
+    {% endif -%}
+    org.apache.catalina.startup.Bootstrap 
+    ;;
+
+  stop)
+    #
+    # Stop Tomcat
+    $JSVC_BIN \
+    -stop \
+    -pidfile $CATALINA_HOME/temp/jsvc.pid \
+    org.apache.catalina.startup.Bootstrap
+    ;;
+
+  *)
+    echo "Usage tomcat.sh start/stop"
+    exit 1;;
+esac

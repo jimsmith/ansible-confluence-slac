@@ -1,0 +1,53 @@
+---
+# Prerequisites. Our environment uses jsvc to run Tomcat, and relies on the LaTeX plugin so needs that installed.
+rpm_prerequisites:
+ - jakarta-commons-daemon-jsvc
+ - texlive
+ - texlive-latex
+ - dvipng
+
+# Confluence app settings
+confluence_version: 5.8.16
+basedir: /opt/j2ee/atlassian
+confluence_home: /var/atlassian/confluence-home
+confluence_user: confluence
+confluence_group: confluence
+download_baseurl: http://www.atlassian.com/software/confluence/downloads/binary
+confluence_installer: atlassian-confluence{{ confluence_version }}.tar.gz
+
+# Database settings (our environment uses
+db_server: mysql.example.com
+db_port: 3306
+db_user: confluence
+db_name: confluence
+
+# If using Crowd for authentication
+crowd_auth: true
+crowd_server: crowd-test.slac.stanford.edu
+crowd_app: confluence-dev
+
+# SSL Certs
+keystore_dir: /etc/ssl/certs
+keystore_file: confluence.keystore
+
+# Java and Tomcat Options
+# Use the systemwide default jre home set by /sbin/alternatives
+java_home: "/etc/alternatives/jre_oracle"
+mail_disabled: "false" # Set to true to keep staging systems quiet
+min_heap: 2048m
+max_heap: 4096m
+max_perm: 1024m
+tomcat_log: /var/log/tomcat/catalina.out
+tomcat_err_log: /var/log/tomcat/catalina.err
+tomcat_verbose: false
+tomcat_debug: false
+
+# Staging system options. Useful if you are syncing app data from 
+# a production system or cloning an existing install of confluence.
+# Prod Confluence server (where to sync data from)
+sync_app_data: false
+confluence_prod: confluence-prod.example.com
+
+# Should be the location of the confluence data dir on the server you're
+# Syncing data from.
+sync_dir: /var/atlassian/confluence-home

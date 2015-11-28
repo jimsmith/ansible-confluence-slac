@@ -1,0 +1,157 @@
+---
+# This role was written assuming a RHEL server environment.
+- name: Check for OS support
+  fail: msg="OS is not supported"
+  when: ansible_os_family != 'RedHat'
+
+- name: Install RPM Dependencies
+  yum: pkg={{ item }} state=latest
+  with_items:
+    rpm_prerequisites
+  sudo: yes
+
+- name: Create Confluence Directories
+  file: dest={{ item }} mode=775 state=directory owner={{ confluence_user }} group={{ confluence_group }}
+  with_items:
+    - "{{ basedir }}"
+    - "{{ confluence_home }}"
+  sudo: yes
+
+- name: Check if Confluence is version is already installed
+  stat: path={{ basedir }}/atlassian-confluence-{{ confluence_version }}
+  register: confluence_install
+  sudo: yes
+
+- name: Check if Confluence Download Exists in temp directory
+  stat: path=/tmp/{{ confluence_installer }}
+  when: not confluence_install.stat.exists
+  register: installer_download
+  sudo: yes
+
+- name: Download Confluence
+  get_url:
+    url={{ download_baseurl }}/{{ confluence_installer }}
+    dest=/tmp/{{ confluence_installer }} mode=775
+  when: not installer_download|skipped and not conftar.stat.exists
+  sudo: yes
+
+- name: Install Confluence
+  command: /bin/tar xzf /tmp/{{ confluence_installer }}
+  args:
+    creates: {{ basedir }}/atlassian-confluence-{{ confluence_version }}
+    chdir: {{ basedir }}
+  when: not installer_download|skipped and not confluence_install.stat.exists
+  sudo: yes
+
+- name: Symlink Confluence Directory to Current Version
+  file: >
+    src={{ basedir }}/atlassian-confluence-{{confluence_version}}
+    dest={{ basedir }}/confluence
+    state=link
+  sudo: yes
+
+- name: Install the MySQL Database Driver
+  copy: >
+    src=mysql-connector-java-5.1.37-bin.jar
+    dest={{ basedir }}/confluence/confluence/WEB-INF/lib/mysql-connector-java-5.1.35-bin.jar
+    owner={{ confluence_user }}
+    group={{ confluence_group }}
+    mode=775
+  when: "{{confluence_version | version_compare('5.0', '>=')}}"
+  sudo: yes
+
+- name: Configure confluence-init.properties
+  template: >
+    src=confluence-init-properties.j2
+    dest={{ basedir }}/confluence/confluence/WEB-INF/classes/confluence-init.properties
+  sudo: yes
+
+- name: Configure server.xml
+  template: src=server-xml.j2 dest={{basedir}}/confluence/conf/server.xml
+  sudo: yes
+
+- name: Configure crowd.properties
+  template: src=crowd-properties.j2 dest={{basedir}}/confluence/confluence/WEB-INF/classes/crowd.properties
+  sudo: yes
+
+- name: Configure Tomcat.sh
+  template: src=Tomcat-sh.j2 dest={{basedir}}/confluence/bin/Tomcat.sh
+  sudo: yes
+
+- name: Set Application Directory Permissions and Ownership
+  file: >
+    dest={{ basedir }}
+    mode=775
+    state=directory
+    owner={{ confluence_user }}
+    group={{ confluence_group }}
+    recurse=yes
+  sudo: yes
+
+- name: Check if Keystore Exists
+  stat: path={{ keystore_dir }}/{{ keystore_file }}
+  register: keystore
+  sudo: yes
+
+- name: Create SSL Keystore Directory
+  file: >
+    path={{ keystore_dir }}
+    state=directory
+    mode=770
+    owner={{ confluence_user }}
+    group={{ confluence_group }}
+  when: not keystore.stat.exists
+  sudo: yes
+
+- name: Copy SSL Keystore
+  copy: >
+    src={{ keystore_file }}
+    dest={{ keystore_dir }}/{{ keystore_file }}
+    mode=770
+    owner={{ confluence_user }}
+    group={{ confluence_group }}
+  when: not keystore.stat.exists
+  sudo: yes
+
+- name: Change Ownership of Confluence Data to Current User (avoids rsync errors when syncing).
+  file: >
+    dest={{ confluence_home }}
+    state=directory
+    mode=775
+    owner={{ ansible_env.USER }}
+    recurse=yes
+  sudo: yes
+  when: sync_app_data
+
+# Use delegate_to and mode=pull to copy from remote to remote.
+- name: Synchronize Confluence Home from Confluence Prod
+  synchronize:
+    src: "{{ sync_dir }}/"
+    dest: "{{ confluence_home }}"
+    recursive: yes
+    delete: yes
+    owner: no
+    mode: push
+    rsync_opts:
+      - "--exclude=plugin-cache/"
+      - "--exclude=plugin-osgi-cache/"
+      - "--exclude=plugins-temp/"
+      - "--exclude=bundled-plugins/"
+      - "--exclude=bundled-plugins_language/"
+      - "--exclude=index/"
+      - "--exclude=journal/"
+  delegate_to: "{{ confluence_prod }}"
+  when: sync_app_data
+  register: synced
+
+# Set the permissions back after the sync has occurred.
+- name: Set Ownership of Confluence Data to Application User
+  file: >
+    dest={{ confluence_home }}
+    state=directory
+    mode=775
+    owner={{ conflunce_user }}
+    group={{ confluence_group }}
+    recursive=yes
+  sudo: yes
+  when: synced|changed
