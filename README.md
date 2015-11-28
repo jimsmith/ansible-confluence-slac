@@ -62,6 +62,7 @@ There are some required variables for various passwords and credentials configur
 in a vault. The following credential vars are required:
 
     db_pass: <database_password>
+    keystore_pass: <ssl_keystore_password>
     crowd_pass: <crowd_application_password> # Optional (required if crowd_auth is true).
     
     

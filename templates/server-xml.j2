@@ -1,6 +1,6 @@
 <Server port="8000" shutdown="SHUTDOWN" debug="0">
     <Service name="Tomcat-Standalone">
-        <Connector address="{{ansible_default_ipv4.address}}" port="80"
+        <Connector address="{{ ansible_default_ipv4.address }}" port="80"
 		   className="org.apache.coyote.tomcat4.CoyoteConnector" 
 		   minProcessors="5" maxProcessors="75"
                    enableLookups="false" redirectPort="443" 
@@ -11,9 +11,9 @@
             <Host name="localhost" debug="0" appBase="webapps" unpackWARs="true" autoDeploy="false">
                 <Context path="" docBase="../confluence" debug="0" reloadable="false">
                     <Resource name="jdbc/ConfluenceDS" auth="Container" type="javax.sql.DataSource"
-                        username="{{db_user}}" password="{{db_pass}}"
+                        username="{{ db_user }}" password="{{ db_pass }}"
                         driverClassName="com.mysql.jdbc.Driver"
-                        url="jdbc:mysql://{{db_server}}:{{db_port | default("3306")}}/{{db_name}}?useUnicode=true"
+                        url="jdbc:mysql://{{ db_server }}:{{ db_port | default("3306") }}/{{ db_name }}?useUnicode=true"
                         {% if oracle_java_version|version_compare('1.8.0', '<') -%}
                         maxActive="15"
                         {%- else -%}
@@ -23,7 +23,7 @@
                         maxIdle="7"
                         defaultTransactionIsolation="READ_COMMITTED"
                         validationQuery="Select 1" />
-                    <Alias>{{ansible_hostname}}.slac.stanford.edu</Alias>
+                    <Alias>{{ ansible_hostname }}.{{ server_domain }}</Alias>
                     <Manager pathname="" />
 	            <Valve className="org.apache.catalina.authenticator.FormAuthenticator" securePagesWithPragma="false" />
                     <Valve className="org.apache.catalina.authenticator.NonLoginAuthenticator" securePagesWithPragma="false" /> 
@@ -42,13 +42,13 @@
 
              For more info, see http://confluence.atlassian.com/display/DOC/Adding+SSL+for+Secure+Logins+and+Page+Security
         -->
-	<Connector address="{{ansible_default_ipv4.address}}" port="443" maxHttpHeaderSize="8192"
+	<Connector address="{{ ansible_default_ipv4.address }}" port="443" maxHttpHeaderSize="8192"
                    maxThreads="150" minSpareThreads="25" maxSpareThreads="75"
                    enableLookups="false" disableUploadTimeout="true"
                    acceptCount="100" scheme="https" secure="true"
                    clientAuth="false" sslProtocol="TLS" SSLEnabled="true"
                    URIEncoding="UTF-8" 
-	  	   keystoreFile="{{keystore_dir}}/{{keystore_file}}" keystorePass="{{keystore_pass}}"/>
+	  	   keystoreFile="{{ keystore_dir }}/{{ keystore_file }}" keystorePass="{{ keystore_pass }}"/>
 
     </Service>
 </Server>

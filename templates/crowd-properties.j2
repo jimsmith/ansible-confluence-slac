@@ -1,9 +1,9 @@
-application.name                        {{crowd_app}}
-application.password                    {{crowd_pass}}
-application.login.url                   https://{{ansible_hostname}}.slac.stanford.edu
+application.name                        {{ crowd_app }}
+application.password                    {{ crowd_pass }}
+application.login.url                   https://{{ ansible_hostname }}.{{ server_domain }}
 
-crowd.server.url                        https://{{crowd_server}}/crowd/services/
-crowd.base.url                          https://{{crowd_server}}/crowd/
+crowd.server.url                        https://{{ crowd_server }}/crowd/services/
+crowd.base.url                          https://{{ crowd_server }}/crowd/
 
 session.isauthenticated                 session.isauthenticated
 session.tokenkey                        session.tokenkey
