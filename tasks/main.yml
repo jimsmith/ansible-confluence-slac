@@ -67,16 +67,16 @@
   sudo: yes
 
 - name: Configure server.xml
-  template: src=server-xml.j2 dest={{basedir}}/confluence/conf/server.xml
+  template: src=server-xml.j2 dest={{ basedir }}/confluence/conf/server.xml
   sudo: yes
 
 - name: Configure crowd.properties
-  template: src=crowd-properties.j2 dest={{basedir}}/confluence/confluence/WEB-INF/classes/crowd.properties
+  template: src=crowd-properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/crowd.properties
   when: crowd_auth
   sudo: yes
 
 - name: Configure Tomcat.sh
-  template: src=Tomcat-sh.j2 dest={{basedir}}/confluence/bin/Tomcat.sh
+  template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
 
 - name: Set Application Directory Permissions and Ownership
