@@ -24,12 +24,13 @@ db_name: confluence
 
 # If using Crowd for authentication
 crowd_auth: true
-crowd_server: crowd-test.slac.stanford.edu
-crowd_app: confluence-dev
+crowd_server: crowd.example.com
+crowd_app: confluence
 
 # SSL Certs
 use_ssl: true
-keystore_dir: /etc/ssl/certs
+keystore_src_dir: ../files   # Local directory where keystore can be found
+keystore_dest_dir: /etc/ssl/certs # Where to install the keystore file on the server
 keystore_file: confluence.keystore
 
 # Java and Tomcat Options

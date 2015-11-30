@@ -49,7 +49,7 @@
                    acceptCount="100" scheme="https" secure="true"
                    clientAuth="false" sslProtocol="TLS" SSLEnabled="true"
                    URIEncoding="UTF-8" 
-	  	           keystoreFile="{{ keystore_dir }}/{{ keystore_file }}" keystorePass="{{ keystore_pass }}"/>
+	  	           keystoreFile="{{ keystore_dest_dir }}/{{ keystore_file }}" keystorePass="{{ keystore_pass }}"/>
 	{% endif -%}
 
     </Service>

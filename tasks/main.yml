@@ -127,7 +127,7 @@
     - upgrade
 
 - name: Check if Keystore Exists on Remote Server
-  stat: path={{ keystore_dir }}/{{ keystore_file }}
+  stat: path={{ keystore_dest_dir }}/{{ keystore_file }}
   register: keystore
   when: use_ssl
   sudo: yes
@@ -137,7 +137,7 @@
 
 - name: Create SSL Keystore Directory
   file: >
-    path={{ keystore_dir }}
+    path={{ keystore_dest_dir }}
     state=directory
     mode=770
     owner={{ confluence_user }}
@@ -150,8 +150,8 @@
 
 - name: Copy SSL Keystore
   copy: >
-    src={{ keystore_file }}
-    dest={{ keystore_dir }}/{{ keystore_file }}
+    src={{ keystore_src_dir }}/{{ keystore_file }}
+    dest={{ keystore_dest_dir }}/{{ keystore_file }}
     mode=770
     owner={{ confluence_user }}
     group={{ confluence_group }}
