@@ -13,7 +13,7 @@ confluence_home: /var/atlassian/confluence-home
 confluence_user: confluence
 confluence_group: confluence
 download_baseurl: http://www.atlassian.com/software/confluence/downloads/binary
-confluence_installer: atlassian-confluence{{ confluence_version }}.tar.gz
+confluence_installer: atlassian-confluence-{{ confluence_version }}.tar.gz
 server_domain: example.com
 
 # Database settings (our environment uses
@@ -45,9 +45,9 @@ tomcat_debug: false
 
 # Staging system options. Useful if you are syncing app data from 
 # a production system or cloning an existing install of confluence.
-# Prod Confluence server (where to sync data from)
 sync_app_data: false
-confluence_prod: confluence-prod.example.com
+# Prod Confluence server (host to sync data from)
+sync_server: confluence-prod.example.com
 
 # Should be the location of the confluence data dir on the server you're
 # Syncing data from.

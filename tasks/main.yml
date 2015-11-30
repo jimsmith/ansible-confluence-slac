@@ -4,6 +4,8 @@
   with_items:
     rpm_prerequisites
   sudo: yes
+  tags:
+    - install
 
 - name: Create Confluence Directories
   file: dest={{ item }} mode=775 state=directory owner={{ confluence_user }} group={{ confluence_group }}
@@ -11,17 +13,25 @@
     - "{{ basedir }}"
     - "{{ confluence_home }}"
   sudo: yes
+  tags:
+    - install
 
 - name: Check if Confluence is version is already installed
   stat: path={{ basedir }}/atlassian-confluence-{{ confluence_version }}
   register: confluence_install
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Check if Confluence Download Exists in temp directory
   stat: path=/tmp/{{ confluence_installer }}
   when: not confluence_install.stat.exists
   register: installer_download
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Download Confluence
   get_url:
@@ -29,6 +39,9 @@
     dest=/tmp/{{ confluence_installer }} mode=775
   when: not installer_download|skipped and not conftar.stat.exists
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Install Confluence
   command: /bin/tar xzf /tmp/{{ confluence_installer }}
@@ -37,6 +50,9 @@
     chdir: {{ basedir }}
   when: not installer_download|skipped and not confluence_install.stat.exists
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Symlink Confluence Directory to Current Version
   file: >
@@ -44,6 +60,9 @@
     dest={{ basedir }}/confluence
     state=link
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Install the MySQL Database Driver
   copy: >
@@ -54,25 +73,45 @@
     mode=775
   when: "{{confluence_version | version_compare('5.0', '>=')}}"
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
 - name: Configure confluence-init.properties
   template: >
     src=confluence-init-properties.j2
     dest={{ basedir }}/confluence/confluence/WEB-INF/classes/confluence-init.properties
   sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
 
 - name: Configure server.xml
   template: src=server-xml.j2 dest={{ basedir }}/confluence/conf/server.xml
   sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
 
 - name: Configure crowd.properties
   template: src=crowd-properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/crowd.properties
   when: crowd_auth
   sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
+    - crowd
 
 - name: Configure Tomcat.sh
   template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
 
 - name: Set Application Directory Permissions and Ownership
   file: >
@@ -83,11 +122,17 @@
     group={{ confluence_group }}
     recurse=yes
   sudo: yes
+  tags:
+    - install
+    - upgrade
 
-- name: Check if Keystore Exists
+- name: Check if Keystore Exists on Remote Server
   stat: path={{ keystore_dir }}/{{ keystore_file }}
   register: keystore
   sudo: yes
+  tags:
+    - install
+    - ssl
 
 - name: Create SSL Keystore Directory
   file: >
@@ -98,6 +143,9 @@
     group={{ confluence_group }}
   when: not keystore.stat.exists
   sudo: yes
+  tags:
+    - install
+    - ssl
 
 - name: Copy SSL Keystore
   copy: >
@@ -108,6 +156,9 @@
     group={{ confluence_group }}
   when: not keystore.stat.exists
   sudo: yes
+  tags:
+    - install
+    - ssl
 
 - name: Change Ownership of Confluence Data to Current User (avoids rsync errors when syncing).
   file: >
@@ -118,8 +169,11 @@
     recurse=yes
   sudo: yes
   when: sync_app_data
+  tags:
+    - sync
 
-# Use delegate_to and mode=pull to copy from remote to remote.
+# Use delegate_to and mode=push to copy from sync server to the Confluence server.
+# Excludes the plugin cache and content index, which will need to be rebuilt on the new server.
 - name: Synchronize Confluence Home from Confluence Prod
   synchronize:
     src: "{{ sync_dir }}/"
@@ -136,9 +190,11 @@
       - "--exclude=bundled-plugins_language/"
       - "--exclude=index/"
       - "--exclude=journal/"
-  delegate_to: "{{ confluence_prod }}"
+  delegate_to: "{{ sync_server }}"
   when: sync_app_data
   register: synced
+  tags:
+    - sync
 
 # Set the permissions back after the sync has occurred.
 - name: Set Ownership of Confluence Data to Application User
@@ -151,3 +207,5 @@
     recursive=yes
   sudo: yes
   when: synced|changed
+  tags:
+    - sync
