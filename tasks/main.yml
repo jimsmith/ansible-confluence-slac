@@ -1,9 +1,4 @@
 ---
-# This role was written assuming a RHEL server environment.
-- name: Check for OS support
-  fail: msg="OS is not supported"
-  when: ansible_os_family != 'RedHat'
-
 - name: Install RPM Dependencies
   yum: pkg={{ item }} state=latest
   with_items:
