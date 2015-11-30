@@ -42,13 +42,15 @@
 
              For more info, see http://confluence.atlassian.com/display/DOC/Adding+SSL+for+Secure+Logins+and+Page+Security
         -->
+    {% if use_ssl is defined and use_ssl == True -%}
 	<Connector address="{{ ansible_default_ipv4.address }}" port="443" maxHttpHeaderSize="8192"
                    maxThreads="150" minSpareThreads="25" maxSpareThreads="75"
                    enableLookups="false" disableUploadTimeout="true"
                    acceptCount="100" scheme="https" secure="true"
                    clientAuth="false" sslProtocol="TLS" SSLEnabled="true"
                    URIEncoding="UTF-8" 
-	  	   keystoreFile="{{ keystore_dir }}/{{ keystore_file }}" keystorePass="{{ keystore_pass }}"/>
+	  	           keystoreFile="{{ keystore_dir }}/{{ keystore_file }}" keystorePass="{{ keystore_pass }}"/>
+	{% endif -%}
 
     </Service>
 </Server>

@@ -129,6 +129,7 @@
 - name: Check if Keystore Exists on Remote Server
   stat: path={{ keystore_dir }}/{{ keystore_file }}
   register: keystore
+  when: use_ssl
   sudo: yes
   tags:
     - install
@@ -141,7 +142,7 @@
     mode=770
     owner={{ confluence_user }}
     group={{ confluence_group }}
-  when: not keystore.stat.exists
+  when: not keystore.stat.exists and use_ssl
   sudo: yes
   tags:
     - install
@@ -154,7 +155,7 @@
     mode=770
     owner={{ confluence_user }}
     group={{ confluence_group }}
-  when: not keystore.stat.exists
+  when: not keystore.stat.exists and use_ssl
   sudo: yes
   tags:
     - install

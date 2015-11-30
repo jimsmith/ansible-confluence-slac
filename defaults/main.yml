@@ -28,6 +28,7 @@ crowd_server: crowd-test.slac.stanford.edu
 crowd_app: confluence-dev
 
 # SSL Certs
+use_ssl: true
 keystore_dir: /etc/ssl/certs
 keystore_file: confluence.keystore
 
@@ -43,7 +44,7 @@ tomcat_err_log: /var/log/tomcat/catalina.err
 tomcat_verbose: false
 tomcat_debug: false
 
-# Staging system options. Useful if you are syncing app data from 
+# Syncing options. Useful if you are syncing app data to a test server from
 # a production system or cloning an existing install of confluence.
 sync_app_data: false
 # Prod Confluence server (host to sync data from)
