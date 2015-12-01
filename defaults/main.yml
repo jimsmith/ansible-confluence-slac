@@ -21,6 +21,8 @@ db_server: mysql.example.com
 db_port: 3306
 db_user: confluence
 db_name: confluence
+mysql_connector_src_dir: ../files
+mysql_connector_filename: mysql-connector-java-5.1.37-bin.jar
 
 # If using Crowd for authentication
 crowd_auth: true

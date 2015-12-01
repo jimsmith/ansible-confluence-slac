@@ -66,8 +66,8 @@
 
 - name: Install the MySQL Database Driver
   copy: >
-    src=mysql-connector-java-5.1.37-bin.jar
-    dest={{ basedir }}/confluence/confluence/WEB-INF/lib/mysql-connector-java-5.1.35-bin.jar
+    src={{ mysql_connector_src_dir }}/{{ mysql_connector_filename }}
+    dest={{ basedir }}/confluence/confluence/WEB-INF/lib/{{mysql_connector_filename}}
     owner={{ confluence_user }}
     group={{ confluence_group }}
     mode=775
