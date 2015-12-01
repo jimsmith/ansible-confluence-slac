@@ -5,6 +5,7 @@
   sudo: yes
   tags:
     - install
+    - all
 
 - name: Create Confluence Directories
   file: dest={{ item }} mode=775 state=directory owner={{ confluence_user }} group={{ confluence_group }}
@@ -14,6 +15,7 @@
   sudo: yes
   tags:
     - install
+    - all
 
 - name: Check if Confluence is version is already installed
   stat: path={{ basedir }}/atlassian-confluence-{{ confluence_version }}
@@ -22,6 +24,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Check if Confluence Download Exists in temp directory
   stat: path=/tmp/{{ confluence_installer }}
@@ -31,6 +34,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Download Confluence
   get_url: >
@@ -42,6 +46,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Install Confluence
   command: /bin/tar xzf /tmp/{{ confluence_installer }}
@@ -53,6 +58,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Symlink Confluence Directory to Current Version
   file: >
@@ -63,6 +69,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Install the MySQL Database Driver
   copy: >
@@ -76,6 +83,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Configure confluence-init.properties
   template: >
@@ -86,6 +94,7 @@
     - install
     - upgrade
     - configure
+    - all
 
 - name: Configure server.xml
   template: src=server-xml.j2 dest={{ basedir }}/confluence/conf/server.xml
@@ -94,6 +103,7 @@
     - install
     - upgrade
     - configure
+    - all
 
 - name: Configure crowd.properties
   template: src=crowd-properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/crowd.properties
@@ -104,14 +114,16 @@
     - upgrade
     - configure
     - crowd
+    - all
 
-- name: Configure Tomcat.sh
+- name: Configure Tomcat.sh Launch Script
   template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
   tags:
     - install
     - upgrade
     - configure
+    - all
 
 - name: Set Application Directory Permissions and Ownership
   file: >
@@ -125,6 +137,7 @@
   tags:
     - install
     - upgrade
+    - all
 
 - name: Check if Keystore Exists on Remote Server
   stat: path={{ keystore_dest_dir }}/{{ keystore_file }}
@@ -134,6 +147,7 @@
   tags:
     - install
     - ssl
+    - all
 
 - name: Create SSL Keystore Directory
   file: >
@@ -147,6 +161,7 @@
   tags:
     - install
     - ssl
+    - all
 
 - name: Copy SSL Keystore
   copy: >
@@ -160,6 +175,7 @@
   tags:
     - install
     - ssl
+    - all
 
 - name: Change Ownership of Confluence Data to Current User (avoids rsync errors when syncing).
   file: >
@@ -169,12 +185,14 @@
     owner={{ ansible_env.USER }}
     recurse=yes
   sudo: yes
-  when: sync_app_data
   tags:
     - sync
+    - all
 
 # Use delegate_to and mode=push to copy from sync server to the Confluence server.
 # Excludes the plugin cache and content index, which will need to be rebuilt on the new server.
+# Ignore errors because sometimes rsync "fails" because files changed during copying, but it shouldn't
+# stop the playbook entirely.
 - name: Synchronize Confluence Home from Confluence Prod
   synchronize:
     src: "{{ sync_dir }}/"
@@ -192,10 +210,11 @@
       - "--exclude=index/"
       - "--exclude=journal/"
   delegate_to: "{{ sync_server }}"
-  when: sync_app_data
   register: synced
+  ignore_errors: yes
   tags:
     - sync
+    - all
 
 # Set the permissions back after the sync has occurred.
 - name: Set Ownership of Confluence Data to Application User
@@ -210,3 +229,4 @@
   when: synced|changed
   tags:
     - sync
+    - all
