@@ -1,8 +1,7 @@
 ---
 - name: Install RPM Dependencies
   yum: pkg={{ item }} state=latest
-  with_items:
-    rpm_prerequisites
+  with_items: {{ rpm_prerequisites }}
   sudo: yes
   tags:
     - install
