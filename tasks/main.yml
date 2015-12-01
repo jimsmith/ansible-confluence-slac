@@ -46,7 +46,7 @@
   command: /bin/tar xzf /tmp/{{ confluence_installer }}
   args:
     creates: "{{ basedir }}/atlassian-confluence-{{ confluence_version }}"
-    chdir: {{ basedir }}
+    chdir: "{{ basedir }}"
   when: not installer_download|skipped and not confluence_install.stat.exists
   sudo: yes
   tags:
