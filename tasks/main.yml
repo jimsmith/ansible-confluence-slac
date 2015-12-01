@@ -37,7 +37,7 @@
     url="{{ download_baseurl }}/{{ confluence_installer }}"
     dest="/tmp/{{ confluence_installer }}"
     mode=775
-  when: not installer_download|skipped and not conftar.stat.exists
+  when: not installer_download|skipped and not installer_download.stat.exists
   sudo: yes
   tags:
     - install
