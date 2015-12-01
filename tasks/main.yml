@@ -32,8 +32,6 @@
     - install
     - upgrade
 
-- debug: msg="{{ download_baseurl }}/{{confluence_installer }}"
-
 - name: Download Confluence
   get_url: >
     url="{{ download_baseurl }}/{{ confluence_installer }}"
