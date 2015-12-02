@@ -45,7 +45,6 @@ As defined in defaults (can be overridden):
     keystore_file: confluence.keystore
     
     # Java and Tomcat Options
-    # Use the systemwide default jre home set by /sbin/alternatives
     java_home: "/etc/alternatives/jre_oracle"
     mail_disabled: "false" # Set to true to keep staging systems quiet
     min_heap: 2048m
