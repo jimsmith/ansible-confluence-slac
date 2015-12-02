@@ -37,8 +37,8 @@ As defined in defaults (can be overridden):
     
     # If using Crowd for authentication
     crowd_auth: true
-    crowd_server: crowd-test.slac.stanford.edu
-    crowd_app: confluence-dev
+    crowd_server: crowd.example.com
+    crowd_app: confluence
     
     # SSL Certs
     keystore_dir: /etc/ssl/certs
