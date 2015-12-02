@@ -226,7 +226,6 @@
     group={{ confluence_group }}
     recursive=yes
   sudo: yes
-  when: synced|changed
   tags:
     - sync
     - all
