@@ -117,7 +117,7 @@
     - all
 
 - name: Configure web.xml
-  template: src=web-xml.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/web.xml
+  template: src=web.xml.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/web.xml
   sudo: yes
   tags:
     - install
