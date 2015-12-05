@@ -159,6 +159,21 @@
     - configure
     - all
 
+# Add the mime type string to the mime.types file for svg images. 
+- name: Enable SVG support
+  lineinfile: >
+    dest={{ basedir }}/confluence/confluence/WEB-INF/classes/mime.types
+    regexp=''
+    insertafter='^image/x-xwindowdump.+xwd$'
+    line='image/svg+xml                   svg svgz'
+    state=present
+  sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
+    - all
+
 - name: Set Application Directory Permissions and Ownership
   file: >
     dest={{ basedir }}
