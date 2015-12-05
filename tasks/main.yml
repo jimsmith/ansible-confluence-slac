@@ -116,6 +116,16 @@
     - crowd
     - all
 
+- name: Configure web.xml
+  template: src=web-xml.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/web.xml
+  sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
+    - all
+
+- name: Configure crowd.properties
 - name: Configure Tomcat.sh Launch Script
   template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
