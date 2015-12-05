@@ -125,9 +125,33 @@
     - configure
     - all
 
-- name: Configure crowd.properties
 - name: Configure Tomcat.sh Launch Script
   template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
+  sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
+    - all
+
+- name: Check for robots.txt in additional files
+  local_action: stat path={{ additional_files_dir }}/robots.txt
+  register: robots
+  sudo: no
+  tags:
+    - install
+    - upgrade
+    - configure
+    - all
+ 
+- name: Install robots.txt
+  copy: >
+    src={{ additional_files_dir }}/robots.txt
+    dest={{ basedir }}/confluence/confluence/robots.txt
+    owner={{ confluence_user }}
+    group={{ confluence_group }}
+    mode=775
+  when: robots.stat.exists
   sudo: yes
   tags:
     - install

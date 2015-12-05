@@ -47,6 +47,9 @@ tomcat_err_log: /var/log/tomcat/catalina.err
 tomcat_verbose: false
 tomcat_debug: false
 
+# Optional config files location
+additional_files_dir: ../files
+
 # Syncing options. Useful if you are syncing app data to a test server from
 # a production system or cloning an existing install of confluence.
 sync_app_data: false
