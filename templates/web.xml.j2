@@ -31,6 +31,7 @@
             classpath:/wikiFiltersSubsystemContext.xml,
             classpath:/velocityContext.xml,
             classpath:/importExportSubsystemContext.xml,
+            classpath:/journalServiceContext.xml,
             classpath:/schedulingSubsystemContext.xml,
             classpath:/schedulingSubsystemManagedContext.xml,
             classpath:/atlassianUserContext.xml,
@@ -42,10 +43,12 @@
             classpath:/services/userServiceContext.xml,
             classpath:/services/statusServiceContext.xml,
             classpath:/services/labelServiceContext.xml,
+            classpath:/services/api/implementationContext.xml,
             classpath:/com/atlassian/confluence/compatibility/compatibility-context.xml,
             classpath:/jmxContext.xml,
-            classpath:/cacheProviderContext.xml,
-            classpath:/wikiToXhtmlMigrationContext.xml
+            classpath*:/cacheProviderContext.xml,
+            classpath:/contentMigrationContext.xml,
+            classpath*:/monitoringContext.xml
         </param-value>
     </context-param>
 
@@ -238,7 +241,16 @@
 
     <filter>
         <filter-name>sitemesh</filter-name>
-        <filter-class>com.atlassian.confluence.util.profiling.ProfilingPageFilter</filter-class>
+        <filter-class>com.atlassian.confluence.util.profiling.ProfilingSiteMeshFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>sitemesh-error</filter-name>
+        <filter-class>com.atlassian.confluence.util.profiling.ProfilingSiteMeshFilter</filter-class>
+        <init-param>
+            <param-name>dispatcher</param-name>
+            <param-value>ERROR</param-value>
+        </init-param>
     </filter>
 
     <filter>
@@ -253,7 +265,19 @@
 
     <filter>
         <filter-name>security</filter-name>
-        <filter-class>com.atlassian.seraph.filter.SecurityFilter</filter-class>
+        <filter-class>com.atlassian.confluence.web.filter.ConfluenceSecurityFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>timeout</filter-name>
+        <filter-class>com.atlassian.confluence.web.filter.ConfluenceTimeoutFilter</filter-class>
+        <init-param>
+            <param-name>urlPatternsToExclude</param-name>
+            <param-value>
+                /rest/quickreload/**,
+                /rest/mywork/latest/status/notification/count
+            </param-value>
+        </init-param>
     </filter>
 
     <filter>
@@ -262,8 +286,18 @@
     </filter>
 
     <filter>
+        <filter-name>usernameheader</filter-name>
+        <filter-class>com.atlassian.confluence.util.UserNameHeaderFilter</filter-class>
+    </filter>
+
+    <filter>
         <filter-name>servletcontextthreadlocal</filter-name>
         <filter-class>com.atlassian.core.filters.ServletContextThreadLocalFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <filter-class>com.atlassian.confluence.cache.TransactionalCacheFactoryCleanupFilter</filter-class>
     </filter>
 
     <filter>
@@ -310,11 +344,6 @@
     </filter>
 
     <filter>
-        <filter-name>gzipFilter</filter-name>
-        <filter-class>com.atlassian.confluence.util.zip.ConfluenceGzipFilter</filter-class>
-    </filter>
-
-    <filter>
         <filter-name>ClusterHeaderFilter</filter-name>
         <filter-class>com.atlassian.confluence.util.ClusterHeaderFilter</filter-class>
     </filter>
@@ -333,6 +362,24 @@
     <filter>
         <filter-name>RequestTimeFilter</filter-name>
         <filter-class>com.atlassian.confluence.core.datetime.RequestTimeThreadLocalFilter</filter-class>
+    </filter>
+    <filter>
+        <filter-name>ResponseOutputStreamFilter</filter-name>
+        <filter-class>com.atlassian.confluence.web.filter.ResponseOutputStreamFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <filter-class>com.atlassian.confluence.tenant.TenantGateFilter</filter-class>
+        <init-param>
+            <param-name>permit</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+        <filter-name>CloseTenantGateFilter</filter-name>
+        <filter-class>com.atlassian.confluence.tenant.TenantGateFilter</filter-class>
     </filter>
 
     <!-- Plugins 2.5 filter changes -->
@@ -545,16 +592,48 @@
         </init-param>
     </filter>
 
+    <filter-mapping>
+        <filter-name>debug-before-request</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>debug-before-include</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>INCLUDE</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>debug-before-forward</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>debug-before-error</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
+
     <!-- End plugins 2.5 filter changes -->
 
+    <!--
+    These mappings for dropIfNotSetupFilter are hacks to prevent setup from failing if there are Confluence browser
+    tabs open that are pointing to the same instance. They should be safe to remove once CONFDEV-9627 is fixed.
+    -->
     <filter-mapping>
         <filter-name>dropIfNotSetupFilter</filter-name>
         <url-pattern>/json/startheartbeatactivity.action</url-pattern>
     </filter-mapping>
-
     <filter-mapping>
         <filter-name>dropIfNotSetupFilter</filter-name>
         <url-pattern>/rest/tinymce/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>dropIfNotSetupFilter</filter-name>
+        <url-pattern>/rest/quickreload/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>dropIfNotSetupFilter</filter-name>
+        <url-pattern>/rest/mywork/*</url-pattern>
     </filter-mapping>
 
 
@@ -597,26 +676,9 @@
         <url-pattern>/s/*</url-pattern>
     </filter-mapping>
 
-    <!-- Uncomment to enable debugging for response headers in each dispatcher pipeline, before (almost) all filtering -->
     <filter-mapping>
-        <filter-name>debug-before-request</filter-name>
+        <filter-name>ResponseOutputStreamFilter</filter-name>
         <url-pattern>/*</url-pattern>
-        <dispatcher>REQUEST</dispatcher>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>debug-before-include</filter-name>
-        <url-pattern>/*</url-pattern>
-        <dispatcher>INCLUDE</dispatcher>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>debug-before-forward</filter-name>
-        <url-pattern>/*</url-pattern>
-        <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>debug-before-error</filter-name>
-        <url-pattern>/*</url-pattern>
-        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
     <filter-mapping>
@@ -628,7 +690,7 @@
         <filter-name>language</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    
+
 
     <filter-mapping>
         <filter-name>webwork-cleanup</filter-name>
@@ -644,6 +706,24 @@
     <filter-mapping>
         <filter-name>request-param-cleaner</filter-name>
         <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- code that has to do tenant setup -->
+    <filter-mapping>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <url-pattern>/admin/appTrustCertificate</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <url-pattern>/setup/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>CloseTenantGateFilter</filter-name>
+        <url-pattern>/setup/awaiting-tenant.action</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>OpenTenantGateFilter</filter-name>
+        <url-pattern>/bootstrap/*</url-pattern>
     </filter-mapping>
 
     <!-- Plugins 2.5 filter changes -->
@@ -676,17 +756,11 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <filter-mapping>
-        <filter-name>gzipFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <!-- uncomment this mapping in order to log page views to the access log, see log4j.properties also -->
-    <filter-mapping>
-        <filter-name>AccessLogFilter</filter-name>
-        <url-pattern>/display/*</url-pattern>
-	<url-pattern>*.action</url-pattern>
-    </filter-mapping>
+        <filter-mapping>
+            <filter-name>AccessLogFilter</filter-name>
+            <url-pattern>/display/*</url-pattern>
+        </filter-mapping>
 
     <filter-mapping>
         <filter-name>RequestTimeFilter</filter-name>
@@ -743,9 +817,16 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>profiling</filter-name>
+        <url-pattern>/rest/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>profiling</filter-name>
+        <url-pattern>/rpc/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>profiling</filter-name>
         <url-pattern>/s/*</url-pattern>
     </filter-mapping>
-
 
     <filter-mapping>
         <filter-name>thread-local-error-collection</filter-name>
@@ -899,6 +980,7 @@
         <url-pattern>/*</url-pattern>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
     <!-- This must come after the login filter -->
@@ -959,6 +1041,13 @@
         <url-pattern>/*</url-pattern>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
+
+    <!-- Must go after seraph -->
+    <filter-mapping>
+        <filter-name>timeout</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <!-- Must go after seraph -->
@@ -967,6 +1056,7 @@
         <url-pattern>*.action</url-pattern>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
     <filter-mapping>
         <filter-name>userthreadlocal</filter-name>
@@ -995,6 +1085,13 @@
     <filter-mapping>
         <filter-name>userthreadlocal</filter-name>
         <url-pattern>/s/*</url-pattern>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>usernameheader</filter-name>
+        <url-pattern>/*</url-pattern>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
@@ -1034,6 +1131,12 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>servletcontextthreadlocal</filter-name>
+        <url-pattern>/plugins/*</url-pattern>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>servletcontextthreadlocal</filter-name>
         <url-pattern>/s/*</url-pattern>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
@@ -1050,6 +1153,47 @@
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>*.action</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>*.vm</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/display/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/label/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/rpc/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/s/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/download/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>transactionalCacheFactoryCleanupFilter</filter-name>
+        <url-pattern>/rest/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+
     <filter-mapping>
         <filter-name>jmx</filter-name>
         <url-pattern>*.action</url-pattern>
@@ -1066,8 +1210,13 @@
         <url-pattern>/s/*</url-pattern>
     </filter-mapping>
 
-    <!-- Plugins 2.5 filter changes -->
+    <!-- CONFDEV-14301: This mapping should only be used in order to gracefully deprecate icon URLs -->
+    <filter-mapping>
+        <filter-name>UrlRewriteFilter</filter-name>
+        <url-pattern>/images/icons/*</url-pattern>
+    </filter-mapping>
 
+    <!-- Plugins 2.5 filter changes -->
     <filter-mapping>
         <filter-name>filter-plugin-dispatcher-before-decoration-request</filter-name>
         <url-pattern>/*</url-pattern>
@@ -1097,6 +1246,12 @@
     <filter-mapping>
         <filter-name>sitemesh</filter-name>
         <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>sitemesh-error</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
     <!-- Needs to run before the sitemesh filter works with the response but after the target servlet/resource was executed -->
@@ -1159,7 +1314,6 @@
 
     <!-- End plugins 2.5 filter changes -->
 
-    <!-- Uncomment to enable debugging for response headers in each dispatcher pipeline, after all filtering -->
     <filter-mapping>
         <filter-name>debug-after-request</filter-name>
         <url-pattern>/*</url-pattern>
@@ -1209,6 +1363,12 @@
 
     <listener>
         <listener-class>com.atlassian.confluence.setup.ValidLicenseContextListener</listener-class>
+    </listener>
+
+
+    <!-- Doing any AMPS overrides before any upgrade scripts kicked in -->
+    <listener>
+        <listener-class>com.atlassian.confluence.upgrade.AmpsOverridesServletContextListener</listener-class>
     </listener>
 
     <!-- Upgrades must be performed before we start the plugin system, because upgrades sometimes affect the plugin data -->
@@ -1273,6 +1433,12 @@
     </servlet>
 
     <servlet>
+        <servlet-name>status-servlet</servlet-name>
+        <servlet-class>com.atlassian.confluence.servlet.ApplicationStatusServlet</servlet-class>
+        <load-on-startup>5</load-on-startup>
+    </servlet>
+
+    <servlet>
         <servlet-name>xmlrpc</servlet-name>
         <servlet-class>com.atlassian.confluence.servlet.SpringManagedServlet</servlet-class>
         <init-param>
@@ -1290,26 +1456,6 @@
             <param-value>com.atlassian.confluence.links.persistence.ConfluenceTrackbackStore</param-value>
         </init-param>
         <load-on-startup>7</load-on-startup>
-    </servlet>
-
-    <servlet>
-        <servlet-name>glue-soap</servlet-name>
-        <servlet-class>com.atlassian.confluence.servlet.SpringManagedServlet</servlet-class>
-        <init-param>
-            <param-name>springComponentName</param-name>
-            <param-value>glueSoapServer</param-value>
-        </init-param>
-        <load-on-startup>8</load-on-startup>
-    </servlet>
-
-    <servlet>
-        <servlet-name>axis-soap</servlet-name>
-        <servlet-class>com.atlassian.confluence.servlet.SpringManagedServlet</servlet-class>
-        <init-param>
-            <param-name>springComponentName</param-name>
-            <param-value>axisSoapServer</param-value>
-        </init-param>
-        <load-on-startup>8</load-on-startup>
     </servlet>
 
     <servlet>
@@ -1394,6 +1540,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>status-servlet</servlet-name>
+        <url-pattern>/status</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>xmlrpc</servlet-name>
         <url-pattern>/rpc/xmlrpc</url-pattern>
     </servlet-mapping>
@@ -1401,21 +1552,6 @@
     <servlet-mapping>
         <servlet-name>trackback</servlet-name>
         <url-pattern>/rpc/trackback/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>glue-soap</servlet-name>
-        <url-pattern>/rpc/soap/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>glue-soap</servlet-name>
-        <url-pattern>/rpc/soap-glue/*</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>axis-soap</servlet-name>
-        <url-pattern>/rpc/soap-axis/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
@@ -1453,7 +1589,7 @@
         <url-pattern>/admin/appTrustCertificate</url-pattern>
     </servlet-mapping>
 
-    <!-- 
+    <!--
     As the REST module is implemented using only a filter this noop servlet is required (CONF-17578)
     -->
     <servlet-mapping>
@@ -1463,10 +1599,12 @@
 
     <session-config>
         <session-timeout>60</session-timeout>
+        <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
     <welcome-file-list>
         <welcome-file>default.jsp</welcome-file>
+        <welcome-file>index.action</welcome-file>
     </welcome-file-list>
 
     <!-- redirect all 500 errors to confluence error page -->
@@ -1479,12 +1617,6 @@
         <error-code>404</error-code>
         <location>/fourohfour.action</location>
     </error-page>
-    <resource-ref>
-        <description>Connection Pool</description>
-        <res-ref-name>jdbc/ConfluenceDS</res-ref-name>
-        <res-type>javax.sql.Datasource</res-type>
-        <res-auth>Container</res-auth>
-    </resource-ref>
 
 {% if use_ssl is defined and use_ssl == True %}
     <security-constraint>
