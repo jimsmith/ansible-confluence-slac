@@ -36,7 +36,7 @@ export PATH=$JAVA_HOME/bin:/bin:/usr/bin:/sbin:/usr/sbin
 export CATALINA_HOME={{ basedir }}/confluence/
 export DAEMON_HOME={{ basedir }}/confluence/bin/
 export JSVC_BIN=/usr/bin/jsvc
-TOMCAT_USER={{ jira_user | default("jira") }}
+TOMCAT_USER={{ confluence_user | default("confluence") }}
 TMP_DIR=$CATALINA_HOME/temp
 
 CATALINA_OPTS="-Dorg.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER=true
