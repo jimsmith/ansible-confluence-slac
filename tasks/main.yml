@@ -125,6 +125,15 @@
     - configure
     - all
 
+- name: Configure log4j.properties
+  template: src=log4j.properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/log4j.properties
+  sudo: yes
+  tags:
+    - install
+    - upgrade
+    - configure
+    - all
+
 - name: Configure Tomcat.sh Launch Script
   template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
