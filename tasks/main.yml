@@ -155,7 +155,7 @@
  
 - name: Install robots.txt
   copy: >
-    src={{ additional_files_dir }}/robots.txt
+    src={{ additional_files_dir }}/{{ robots_filename }}
     dest={{ confluence_basedir }}/confluence/confluence/robots.txt
     owner={{ confluence_user }}
     group={{ confluence_group }}

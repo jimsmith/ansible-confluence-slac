@@ -15,8 +15,9 @@ confluence_group: confluence
 download_baseurl: http://www.atlassian.com/software/confluence/downloads/binary
 confluence_installer: "atlassian-confluence-{{ confluence_version }}.tar.gz"
 server_domain: example.com
+robots_filename: confluence-robots.txt
 
-# Database settings (our environment uses
+# Database settings (our environment uses MySQL)
 db_server: mysql.example.com
 db_port: 3306
 db_user: confluence
@@ -52,9 +53,10 @@ additional_files_dir: ../files
 # Syncing options. Useful if you are syncing app data to a test server from
 # a production system or cloning an existing install of confluence.
 sync_app_data: false
-# Prod Confluence server (host to sync data from)
+
+# Existing Confluence server (host to sync data from)
 sync_server: confluence-prod.example.com
 
-# Should be the location of the confluence data dir on the server you're
+# Should be the location of the confluence home directory on the server you're
 # Syncing data from.
 sync_dir: /var/atlassian/confluence-home
