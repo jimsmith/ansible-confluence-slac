@@ -10,7 +10,7 @@
 - name: Create Confluence Directories
   file: dest={{ item }} mode=775 state=directory owner={{ confluence_user }} group={{ confluence_group }}
   with_items:
-    - "{{ basedir }}"
+    - "{{ confluence_basedir }}"
     - "{{ confluence_home }}"
   sudo: yes
   tags:
@@ -18,7 +18,7 @@
     - all
 
 - name: Check if Confluence is version is already installed
-  stat: path={{ basedir }}/atlassian-confluence-{{ confluence_version }}
+  stat: path={{ confluence_basedir }}/atlassian-confluence-{{ confluence_version }}
   register: confluence_install
   sudo: yes
   tags:
@@ -51,8 +51,8 @@
 - name: Install Confluence
   command: /bin/tar xzf /tmp/{{ confluence_installer }}
   args:
-    creates: "{{ basedir }}/atlassian-confluence-{{ confluence_version }}"
-    chdir: "{{ basedir }}"
+    creates: "{{ confluence_basedir }}/atlassian-confluence-{{ confluence_version }}"
+    chdir: "{{ confluence_basedir }}"
   when: not installer_download|skipped and not confluence_install.stat.exists
   sudo: yes
   tags:
@@ -62,8 +62,8 @@
 
 - name: Symlink Confluence Directory to Current Version
   file: >
-    src={{ basedir }}/atlassian-confluence-{{confluence_version}}
-    dest={{ basedir }}/confluence
+    src={{ confluence_basedir }}/atlassian-confluence-{{confluence_version}}
+    dest={{ confluence_basedir }}/confluence
     state=link
   sudo: yes
   tags:
@@ -73,8 +73,8 @@
 
 - name: Install the MySQL Database Driver
   copy: >
-    src={{ mysql_connector_src_dir }}/{{ mysql_connector_filename }}
-    dest={{ basedir }}/confluence/confluence/WEB-INF/lib/{{mysql_connector_filename}}
+    src={{ additional_files_dir }}/{{ mysql_connector_filename }}
+    dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/lib/{{mysql_connector_filename}}
     owner={{ confluence_user }}
     group={{ confluence_group }}
     mode=775
@@ -88,7 +88,7 @@
 - name: Configure confluence-init.properties
   template: >
     src=confluence-init-properties.j2
-    dest={{ basedir }}/confluence/confluence/WEB-INF/classes/confluence-init.properties
+    dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/classes/confluence-init.properties
   sudo: yes
   tags:
     - install
@@ -97,7 +97,7 @@
     - all
 
 - name: Configure server.xml
-  template: src=server-xml.j2 dest={{ basedir }}/confluence/conf/server.xml
+  template: src=server-xml.j2 dest={{ confluence_basedir }}/confluence/conf/server.xml
   sudo: yes
   tags:
     - install
@@ -106,7 +106,7 @@
     - all
 
 - name: Configure crowd.properties
-  template: src=crowd-properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/crowd.properties
+  template: src=crowd-properties.j2 dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/classes/crowd.properties
   when: crowd_auth
   sudo: yes
   tags:
@@ -117,7 +117,7 @@
     - all
 
 - name: Configure web.xml
-  template: src=web.xml.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/web.xml
+  template: src=web.xml.j2 dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/web.xml
   sudo: yes
   tags:
     - install
@@ -126,7 +126,7 @@
     - all
 
 - name: Configure log4j.properties
-  template: src=log4j.properties.j2 dest={{ basedir }}/confluence/confluence/WEB-INF/classes/log4j.properties
+  template: src=log4j.properties.j2 dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/classes/log4j.properties
   sudo: yes
   tags:
     - install
@@ -135,7 +135,7 @@
     - all
 
 - name: Configure Tomcat.sh Launch Script
-  template: src=Tomcat-sh.j2 dest={{ basedir }}/confluence/bin/Tomcat.sh
+  template: src=Tomcat-sh.j2 dest={{ confluence_basedir }}/confluence/bin/Tomcat.sh
   sudo: yes
   tags:
     - install
@@ -156,7 +156,7 @@
 - name: Install robots.txt
   copy: >
     src={{ additional_files_dir }}/robots.txt
-    dest={{ basedir }}/confluence/confluence/robots.txt
+    dest={{ confluence_basedir }}/confluence/confluence/robots.txt
     owner={{ confluence_user }}
     group={{ confluence_group }}
     mode=775
@@ -171,7 +171,7 @@
 # Add the mime type string to the mime.types file for svg images. 
 - name: Enable SVG support
   lineinfile: >
-    dest={{ basedir }}/confluence/confluence/WEB-INF/classes/mime.types
+    dest={{ confluence_basedir }}/confluence/confluence/WEB-INF/classes/mime.types
     regexp=''
     insertafter='^image/x-xwindowdump.+xwd$'
     line='image/svg+xml                   svg svgz'
@@ -185,7 +185,7 @@
 
 - name: Set Application Directory Permissions and Ownership
   file: >
-    dest={{ basedir }}
+    dest={{ confluence_basedir }}
     mode=775
     state=directory
     owner={{ confluence_user }}

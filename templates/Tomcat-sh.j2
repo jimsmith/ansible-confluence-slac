@@ -33,8 +33,8 @@
 # Adapt the following lines to your configuration
 export JAVA_HOME={{java_home | default("/usr/lib/jvm/default-java")}}
 export PATH=$JAVA_HOME/bin:/bin:/usr/bin:/sbin:/usr/sbin
-export CATALINA_HOME={{ basedir }}/confluence/
-export DAEMON_HOME={{ basedir }}/confluence/bin/
+export CATALINA_HOME={{ confluence_basedir }}/confluence/
+export DAEMON_HOME={{ confluence_basedir }}/confluence/bin/
 export JSVC_BIN=/usr/bin/jsvc
 TOMCAT_USER={{ confluence_user | default("confluence") }}
 TMP_DIR=$CATALINA_HOME/temp

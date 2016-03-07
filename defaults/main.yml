@@ -8,7 +8,7 @@ rpm_prerequisites:
 
 # Confluence app settings
 confluence_version: 5.8.16
-basedir: /opt/j2ee/atlassian
+confluence_basedir: /opt/j2ee/atlassian
 confluence_home: /var/atlassian/confluence-home
 confluence_user: confluence
 confluence_group: confluence
@@ -21,7 +21,6 @@ db_server: mysql.example.com
 db_port: 3306
 db_user: confluence
 db_name: confluence
-mysql_connector_src_dir: ../files
 mysql_connector_filename: mysql-connector-java-5.1.37-bin.jar
 
 # If using Crowd for authentication

@@ -1,60 +1,24 @@
-# Ansible Role for Confluence
+# SLAC Confluence for Ansible
 
 This role will install and setup Confluence using the Standalone Tomcat package and JSVC for RedHat systems. 
 
-Originally written for Confluence deployment at SLAC. 
+Tailored specifically for Confluence deployment at SLAC. Can probably be retooled for other environments.
 
 # Requirements
 
-1. A Redhat server (This role is only tested with RHEL6) with an appropriate Java installation
+1. A RedHat Linux server (This role is only tested with RHEL6) with Java installed.
 2. A database (This role assumes MySQL due to the environment it was designed for).
 
 # Variables
 
-As defined in defaults (can be overridden):
-    
-    # Package prerequisites to install. Our instance uses the LaTeX plugin, so those packages are required.
-    rpm_prerequisites:
-     - jakarta-commons-daemon-jsvc
-     - texlive
-     - texlive-latex
-     - dvipng
-    
-    # Confluence app settings
-    confluence_version: 5.8.16
-    basedir: /opt/j2ee/atlassian
-    confluence_home: /var/atlassian/confluence-home
-    confluence_user: confluence
-    confluence_group: confluence
-    download_baseurl: http://www.atlassian.com/software/confluence/downloads/binary
-    confluence_installer: atlassian-confluence{{ confluence_version }}.tar.gz
-    
-    # Database settings (our environment uses
-    db_server: mysql.example.com
-    db_port: 3306
-    db_user: confluence
-    db_name: confluence
-    
-    # If using Crowd for authentication
-    crowd_auth: true
-    crowd_server: crowd.example.com
-    crowd_app: confluence
-    
-    # SSL Certs
-    keystore_dir: /etc/ssl/certs
-    keystore_file: confluence.keystore
-    
-    # Java and Tomcat Options
-    java_home: "/etc/alternatives/jre_oracle"
-    mail_disabled: "false" # Set to true to keep staging systems quiet
-    min_heap: 2048m
-    max_heap: 4096m
-    max_perm: 1024m
-    tomcat_log: /var/log/tomcat/catalina.out
-    tomcat_err_log: /var/log/tomcat/catalina.err
-    tomcat_verbose: false
-    tomcat_debug: false
+All of the required variable save for credentials (which you should put in a vault) are defined in `defaults/main.yml`.
 
+These can be overridden locally. In fact there are several that probably should be since I've just given them dummy 
+values as placeholders. Make sure to examine them carefully before running this against your systems. 
+
+There are a couple of booleans that you can use to opt in or out of some sets of tasks. 
+
+`use_ssl` when set to true will 
 ## Credentials
 
 There are some required variables for various passwords and credentials configured in the app. Those should be stored
