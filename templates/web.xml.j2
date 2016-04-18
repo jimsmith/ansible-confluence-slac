@@ -1599,7 +1599,7 @@
     </servlet-mapping>
 
     <session-config>
-        <session-timeout>60</session-timeout>
+        <session-timeout>{{ tomcat_session_timeout | default('60') }}</session-timeout>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
